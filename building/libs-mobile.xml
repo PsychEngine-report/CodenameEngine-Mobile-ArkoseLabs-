@@ -6,7 +6,7 @@
 		<!-- OpenFL & Lime (Required for Flixel) -->
 		<git name="openfl" url="https://github.com/CodenameCrew/cne-openfl" ref="old" />
 		
-		<git name="lime" url="https://github.com/MaysLastPlays-Stuff/lime-h" unless="ios" />
+		<git name="lime" url="https://github.com/MaysLastPlays-Stuff/lime-h" if="android" />
 		
 		<git name="lime" url="https://github.com/Ethantobot11/lime-h" if="ios" />
 
