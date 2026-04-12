@@ -38,6 +38,8 @@ jobs:
       - name: Installing/Updating libraries
         run: |
           haxe -cp commandline -D analyzer-optimize --run Main setup -s
+          haxelib remove lime
+          haxelib git lime https://github.com/Ethantobot11/lime-h --quiet
       - name: Fix Haxelib
         run: |
           haxelib set lime git
