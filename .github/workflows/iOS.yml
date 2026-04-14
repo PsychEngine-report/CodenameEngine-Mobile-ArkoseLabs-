@@ -39,7 +39,7 @@ jobs:
         run: |
           haxe -cp commandline -D analyzer-optimize --run Main setup -s
           haxelib remove lime
-          haxelib git lime https://github.com/Ethantobot11/lime-h --quiet
+          haxelib git lime https://github.com/th2l-devs/lime --quiet
       - name: Fix Haxelib
         run: |
           haxelib set lime git
