@@ -3,6 +3,9 @@
 	<if cond="update || all">
 		<print pretty="true">Preparing installation...</print>
 
+		<!-- Mobile Controls Library -->
+		<git name="mobile-controls" url="https://github.com/ArkoseLabsOfficial/mobile-controls-dev" />
+
 		<!-- OpenFL & Lime (Required for Flixel) -->
 		<git name="openfl" url="https://github.com/CodenameCrew/cne-openfl" ref="old" />
 		<lib name="lime" version="8.1.2" />

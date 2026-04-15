@@ -191,9 +191,13 @@ class Controls extends FlxActionSet
 	public var gamepadsAdded:Array<Int> = [];
 	public var keyboardScheme:KeyboardScheme = None;
 
+	@:nullSafety(Off)
+	public static var instance:Controls;
+
 	public function new(name, scheme = None)
 	{
 		super(name);
+		instance = this;
 
 		macro_addKeysToActions();
 
@@ -375,19 +379,164 @@ class Controls extends FlxActionSet
 		return ControlsUtil.getPressed(this, name);
 	}
 
-	public inline function checkMobile(buttonName:String, type:String):Bool
+	@:nullSafety(Off)
+	public function checkMobile(buttonName:String, ?type:String):Bool
 	{
-		var keyMap:Array<String> = [buttonName.toLowerCase()]; 
+		if (mobileC) {
+			var upperName:String = buttonName.toUpperCase();
+			var keyMap:Array<String> = [upperName];
+			var swapList:Array<String> = [
+				"ACCEPT", "PAUSE", "RESET",
+				"CHANGE_MODE", "SWITCHMOD", "FPS_COUNTER",
+				"DEV_ACCESS", "DEV_CONSOLE", "DEV_RELOAD"
+			];
+			/* Basically Swaps the Which Variable Should Do What */
+			if (swapList.contains(upperName)) {
+				if (type == null || type == "")
+					type = "_P";
+				else if (type == "_P" || type == "_HOLD")
+					type = "";
+			}
 
-		switch(type)
-		{
-			case "_P":
-				trace('just pressed: $keyMap');
-			case "_R":
-				trace('just released: $keyMap');
-			default:
-				trace('pressed: $keyMap');
+			/* Backwards Compatibility */
+			switch(upperName) {
+				case "ACCEPT": keyMap.push("A");
+				case "BACK": keyMap.push("B");
+				case "PAUSE": keyMap.push("P");
+			}
+
+			switch(type)
+			{
+				case "_P", "_HOLD":
+					var p:Bool = (mobilePadJustPressed(keyMap) || hitboxJustPressed(keyMap));
+					return p;
+				case "_R":
+					var justR:Bool = (mobilePadJustReleased(keyMap) || hitboxJustReleased(keyMap));
+					return justR;
+				default:
+					var justP:Bool = (mobilePadPressed(keyMap) || hitboxPressed(keyMap));
+					return justP;
+			}
 		}
 		return false;
+	}
+
+	@:nullSafety(Off)
+	public var isInSubstate:Bool = false; // don't worry about this it becomes true and false on it's own in MusicBeatSubstate
+
+	@:nullSafety(Off)
+	public var mobileC(get, never):Bool;
+
+	@:nullSafety(Off)
+	private function mobilePadPressed(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+		if (localState == null) trace("state is null");
+		if (localSubstate == null) trace("Substate is null");
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.mobilePad != null) {
+			if (localSubstate.mobileManager.mobilePad.pressed(keys) == true)
+				return true;
+		} else if (keys != null && localState?.mobileManager?.mobilePad != null) {
+			if (localState.mobileManager.mobilePad.pressed(keys) == true)
+				return true;
+		}
+
+		return false;
+	}
+
+	@:nullSafety(Off)
+	private function mobilePadJustPressed(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.mobilePad != null) {
+			if (localSubstate.mobileManager.mobilePad.justPressed(keys) == true)
+				return true;
+		} else if (keys != null && localState?.mobileManager?.mobilePad != null) {
+			if (localState.mobileManager.mobilePad.justPressed(keys) == true)
+				return true;
+		}
+
+		return false;
+	}
+
+	@:nullSafety(Off)
+	private function mobilePadJustReleased(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.mobilePad != null) {
+			if (localSubstate.mobileManager.mobilePad.justReleased(keys) == true)
+				return true;
+		} else if (keys != null && localState?.mobileManager?.mobilePad != null) {
+			if (localState.mobileManager.mobilePad.justReleased(keys) == true)
+				return true;
+		}
+
+		return false;
+	}
+
+	@:nullSafety(Off)
+	private function hitboxPressed(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.hitbox != null) {
+			if (localSubstate.mobileManager.hitbox.pressed(keys))
+				return true;
+		} else if (keys != null && localState?.mobileManager?.hitbox != null) {
+			if (localState.mobileManager.hitbox.pressed(keys))
+				return true;
+		}
+
+		return false;
+	}
+
+	@:nullSafety(Off)
+	private function hitboxJustPressed(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.hitbox != null) {
+			if (localSubstate.mobileManager.hitbox.justPressed(keys))
+				return true;
+		} else if (keys != null && localState?.mobileManager?.hitbox != null) {
+			if (localState.mobileManager.hitbox.justPressed(keys))
+				return true;
+		}
+
+		return false;
+	}
+
+	@:nullSafety(Off)
+	private function hitboxJustReleased(keys:Array<String>):Bool
+	{
+		var localSubstate:MusicBeatSubstate = MusicBeatSubstate.instance;
+		var localState:MusicBeatState = MusicBeatState.instance;
+
+		if (isInSubstate && keys != null && localSubstate?.mobileManager?.hitbox != null) {
+			if (localSubstate.mobileManager.hitbox.justReleased(keys))
+				return true;
+		} else if (keys != null && localState?.mobileManager?.hitbox != null) {
+			if (localState.mobileManager.hitbox.justReleased(keys))
+				return true;
+		}
+
+		return false;
+	}
+
+	@:noCompletion
+	private function get_mobileC():Bool
+	{
+		if (Options.controlsAlpha >= 0.1)
+			return true;
+		else
+			return false;
 	}
 }

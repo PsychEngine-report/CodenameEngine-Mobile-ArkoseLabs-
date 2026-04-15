@@ -20,6 +20,12 @@ class ControlsMacro
 	static var _keySet: Map<String, String> = null;
 	static var _internalMap: Map<String, String> = null;
 
+	static var ignoredFields = [
+		"mobileC",
+		"isInSubstate",
+		"requestedInstance",
+	];
+
 	public static macro function build(): Array<Field>
 	{
 		var fields = Context.getBuildFields();
@@ -38,13 +44,15 @@ class ControlsMacro
 		var fields = Context.getBuildFields();
 		for (field in fields.copy())
 		{
+			if (ignoredFields.contains(field.name)) continue;
+
 			switch (field.kind)
 			{
 				case FProp(g, s, t, e):
 					var controlFields = handleControl(field, g, s, t, e);
-					for (field in controlFields)
-						if (field != null)
-							fields.push(field);
+					for (newField in controlFields)
+						if (newField != null)
+							fields.push(newField);
 				default:
 			}
 		}
@@ -340,8 +348,8 @@ class ControlsMacro
 				ret: macro : Bool,
 				params: [],
 				expr: _allDevModeOnlyControls.contains(shortName) ?
-					(macro return Options.devMode && $i{internalName}.check()) :
-					(macro return $i{internalName}.check() || checkMobile($v{shortName}, $v{type})),
+					(macro return Options.devMode && ($i{internalName}.check() == true || checkMobile($v{shortName}, $v{type}) == true)) :
+					(macro return ($i{internalName}.check() == true || checkMobile($v{shortName}, $v{type}) == true)),
 				args: []
 			}),
 			pos: field.pos,

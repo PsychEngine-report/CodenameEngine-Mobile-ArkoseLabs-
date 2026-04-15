@@ -18,6 +18,16 @@ class Options
 	private static var __eventAdded = false;
 
 	/**
+	 * MOBILE SETTINGS
+	 */
+	public static var extraButtons:Int = 2;
+	public static var hitboxPos:Bool = false;
+	public static var controlsAlpha:Float = FlxG.onMobile ? 0.6 : 0;
+	public static var hitboxType:String = "Gradient";
+	public static var hitboxMode:String = 'Normal (New)';
+	public static var mobileExtraKeyReturns:Array<String> = ['SHIFT', 'SPACE', 'Q', 'E'];
+
+	/**
 	 * SETTINGS
 	 */
 	public static var naughtyness:Bool = true;
@@ -40,8 +50,8 @@ class Options
 	public static var splashesEnabled:Bool = true;
 	@:dox(hide) @:doNotSave public static var hitWindow:Float = 250; // DEPRECATED
 	public static var songOffset:Float = 0;
-	public static var framerate:Int = 120;
-	public static var gpuOnlyBitmaps:Bool = #if (mac || web) false #else true #end; // causes issues on mac and web
+	public static var framerate:Int = #if mobile 60 #else 120 #end;
+	public static var gpuOnlyBitmaps:Bool = #if (mac || web || mobile) false #else true #end; // causes issues on mac and web
 	public static var language = "en"; // default to english, Flags.DEFAULT_LANGUAGE should not modify this
 	public static var streamedMusic:Bool = false;
 	public static var streamedVocals:Bool = false;
@@ -63,8 +73,8 @@ class Options
 	public static var editorCharacterPrettyPrint:Bool = true;
 	public static var editorStagePrettyPrint:Bool = true;
 
-	public static var editorsResizable:Bool = true;
-	public static var bypassEditorsResize:Bool = false;
+	public static var editorsResizable:Bool = #if mobile false #else true #end;
+	public static var bypassEditorsResize:Bool = #if mobile true #else false #end;
 	public static var maxUndos:Int = 120;
 	public static var songOffsetAffectEditors:Bool = false;
 

@@ -75,11 +75,12 @@ class MainMenuState extends MusicBeatState
 		}
 
 		FlxG.camera.follow(camFollow, null, 0.06);
+		var modsKey:String = controls.mobileC ? "M" : controls.getKeyName(SWITCHMOD);
 
 		versionText = new FunkinText(5, FlxG.height - 2, 0, [
 			Flags.VERSION_MESSAGE,
 			TU.translate("mainMenu.commit", [Flags.COMMIT_NUMBER, Flags.COMMIT_HASH]),
-			TU.translate("mainMenu.openMods", [controls.getKeyName(SWITCHMOD)]),
+			TU.translate("mainMenu.openMods", [modsKey]),
 			''
 		].join('\n'));
 		versionText.y -= versionText.height;
@@ -87,6 +88,8 @@ class MainMenuState extends MusicBeatState
 		add(versionText);
 
 		changeItem();
+
+		addMobilePad("UP_DOWN", "A_B_M_E");
 
 		devModeWarning = new FunkinText(0, FlxG.height - 50, 1280, "You have to enable DEVELOPER MODE in the miscellaneous settings!", 24);
 		devModeWarning.alignment = CENTER;
@@ -120,7 +123,7 @@ class MainMenuState extends MusicBeatState
 				}
 				*/
 			}
-			if (!Options.devMode && FlxG.keys.justPressed.SEVEN) {
+			if (!Options.devMode && controls.DEV_ACCESS) {
 				FlxG.sound.play(Paths.sound(Flags.DEFAULT_EDITOR_DELETE_SOUND));
 				if (devModeCount++ == 2) {
 					FlxTween.tween(devModeWarning, {alpha: 1}, 0.4);
@@ -170,6 +173,12 @@ class MainMenuState extends MusicBeatState
 			});
 		}
 		return super.switchTo(nextState);
+	}
+
+	override function closeSubState() {
+		super.closeSubState();
+		removeMobilePad();
+		addMobilePad('UP_DOWN', 'MAIN_MENU');
 	}
 
 	function selectItem() {

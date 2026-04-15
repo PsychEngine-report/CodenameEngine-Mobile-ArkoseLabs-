@@ -20,6 +20,42 @@ import funkin.options.PlayerSettings;
 **/
 class MusicBeatState extends FlxState implements IBeatCancellableReceiver
 {
+	public static var instance:MusicBeatState;
+	public var mobileManager:MobileControlManager;
+	public function getMobilePadButton(name:String) {
+		return mobileManager?.mobilePad?.getButton(name);
+	}
+	public function mobilePadJustPressed(buttons:Dynamic):Bool {
+		return mobileManager?.mobilePad?.justPressed(buttons);
+	}
+	public function mobilePadPressed(buttons:Dynamic):Bool {
+		return mobileManager?.mobilePad?.pressed(buttons);
+	}
+	public function mobilePadJustReleased(buttons:Dynamic):Bool {
+		return mobileManager?.mobilePad?.justReleased(buttons);
+	}
+	public function mobilePadReleased(buttons:Dynamic):Bool {
+		return mobileManager?.mobilePad?.released(buttons);
+	}
+	public function addMobilePad(DPad:String, Action:String) {
+		mobileManager.addMobilePad(DPad, Action);
+	}
+	public function removeMobilePad() {
+		mobileManager.removeMobilePad();
+	}
+	public function addHitbox(?mode:String, ?hints:Bool):Void {
+		mobileManager.addHitbox(mode, hints);
+	}
+	public function removeHitbox() {
+		mobileManager.removeHitbox();
+	}
+	public function addHitboxCamera(defaultDrawTarget:Bool = false):Void {
+		mobileManager.addHitboxCamera(defaultDrawTarget);
+	}
+	public function addMobilePadCamera(defaultDrawTarget:Bool = false):Void {
+		mobileManager.addMobilePadCamera(defaultDrawTarget);
+	}
+
 	private var lastBeat:Float = 0;
 	private var lastStep:Float = 0;
 
@@ -117,6 +153,7 @@ class MusicBeatState extends FlxState implements IBeatCancellableReceiver
 
 	public function new(scriptsAllowed:Bool = true, ?scriptName:String) {
 		super();
+		mobileManager = new MobileControlManager(this);
 		this.scriptsAllowed = #if SOFTCODED_STATES scriptsAllowed #else false #end;
 
 		if(lastStateName != (lastStateName = Type.getClassName(Type.getClass(this)))) {
@@ -172,6 +209,7 @@ class MusicBeatState extends FlxState implements IBeatCancellableReceiver
 
 	override function create()
 	{
+		instance = this;
 		loadScript();
 		Framerate.offset.y = 0;
 		super.create();
@@ -289,6 +327,8 @@ class MusicBeatState extends FlxState implements IBeatCancellableReceiver
 
 	public override function destroy() {
 		super.destroy();
+		if (mobileManager != null) mobileManager.destroy();
+		instance = null;
 		graphicCache.destroy();
 		call("destroy");
 		stateScripts = FlxDestroyUtil.destroy(stateScripts);

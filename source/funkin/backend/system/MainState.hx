@@ -35,7 +35,7 @@ class MainState extends FlxState {
 		initiated = true;
 
 		#if sys
-		CoolUtil.deleteFolder('./.temp/'); // delete temp folder
+		CoolUtil.deleteFolder('.temp/'); // delete temp folder
 		#end
 		Options.save();
 
@@ -154,7 +154,7 @@ class MainState extends FlxState {
 			Framerate.instance.reload();
 
 		#if sys
-		CoolUtil.safeAddAttributes('./.temp/', NativeAPI.FileAttribute.HIDDEN);
+		CoolUtil.safeAddAttributes('.temp/', NativeAPI.FileAttribute.HIDDEN);
 		#end
 
 		for (lib in ModsFolder.getLoadedModsLibs()) {

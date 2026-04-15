@@ -14,6 +14,9 @@ class CharacterSelection extends EditorTreeMenu {
 		super.create();
 		DiscordUtil.call("onEditorTreeLoaded", ["Character Editor"]);
 		addMenu(new CharacterSelectionScreen());
+		final state = MusicBeatState.instance;
+		state.addMobilePad("FULL", "A_B");
+		state.addMobilePadCamera();
 	}
 }
 

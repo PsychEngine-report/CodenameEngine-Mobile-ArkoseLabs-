@@ -575,6 +575,9 @@ class Charter extends UIState {
 		// add the ui group
 		add(uiGroup);
 
+		addMobilePad("CHART_EDITOR", "CHART_EDITOR");
+		addMobilePadCamera();
+
 		loadSong();
 
 		if (Framerate.isLoaded) {
@@ -810,6 +813,8 @@ class Charter extends UIState {
 			else selection = [s];
 		}
 
+		var pointerJustReleased:Bool = controls.mobileC ? ScreenUtil.touch.justReleased : FlxG.mouse.justReleased;
+
 		for (group in [notesGroup, leftEventsGroup, rightEventsGroup]) {
 			var group:FlxTypedGroup<Dynamic> = cast group;
 			group.forEach(function(s) {
@@ -817,8 +822,8 @@ class Charter extends UIState {
 				if (gridActionType == NONE) {
 					if (s is CharterNote) {
 						var n:CharterNote = cast s;
-						if ((n.hovered || n.sustainDraggable) && FlxG.mouse.justReleased) select(cast s);
-					} else if (FlxG.mouse.justReleased && s.hovered) select(cast s);
+						if ((n.hovered || n.sustainDraggable) && pointerJustReleased) select(cast s);
+					} else if (pointerJustReleased && s.hovered) select(cast s);
 				}
 			});
 		}
@@ -854,15 +859,54 @@ class Charter extends UIState {
 		}
 	}
 
+	/* The Function That Checks MobilePad Click */
+	public function isTouchingMobilePad():Bool {
+		if (!controls.mobileC || mobileManager == null || mobileManager.mobilePad == null) return false;
+
+		if (mobileManager.mobilePad.anyPressed() || mobileManager.mobilePad.anyJustPressed() || mobileManager.mobilePad.anyJustReleased()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	var deletedNotes:Selection = new Selection();
 	public function updateNoteLogic(elapsed:Float) {
+		// ignore the codes when touching the mobilePad
+		if (isTouchingMobilePad()) return;
+
 		updateSelectionLogic();
+
+		var pointerPressed:Bool = false;
+		var pointerJustPressed:Bool = false;
+		var pointerJustReleased:Bool = false;
+		var pointerJustPressedRight:Bool = false;
+		var pointerJustReleasedRight:Bool = false;
+
+		/**
+		 * DYNAMIC POINTER RESOLUTION
+		 */
+		if (controls.mobileC) {
+			ScreenUtil.touch?.instance?.getWorldPosition(charterCamera, mousePos);
+			pointerPressed = ScreenUtil.touch.pressed;
+			pointerJustPressed = ScreenUtil.touch.justPressed;
+			pointerJustReleased = ScreenUtil.touch.justReleased;
+
+			pointerJustPressedRight = mobilePadJustPressed("R");
+			pointerJustReleasedRight = mobilePadJustReleased("R");
+		} else {
+			FlxG.mouse.getWorldPosition(charterCamera, mousePos);
+			pointerPressed = FlxG.mouse.pressed;
+			pointerJustPressed = FlxG.mouse.justPressed;
+			pointerJustReleased = FlxG.mouse.justReleased;
+			pointerJustPressedRight = FlxG.mouse.justPressedRight;
+			pointerJustReleasedRight = FlxG.mouse.justReleasedRight;
+		}
 
 		/**
 		 * NOTE DRAG HANDLING
 		 */
-		FlxG.mouse.getWorldPosition(charterCamera, mousePos);
-		if (!gridBackdropDummy.hoveredByChild && !FlxG.mouse.pressed)
+		if (!gridBackdropDummy.hoveredByChild && !pointerPressed)
 			gridActionType = NONE;
 		selectionBox.visible = false;
 		switch(gridActionType) {
@@ -874,7 +918,7 @@ class Charter extends UIState {
 						selectionBox.y = Math.min(mousePos.y, dragStartPos.y);
 						selectionBox.bWidth = Std.int(Math.abs(mousePos.x - dragStartPos.x));
 						selectionBox.bHeight = Std.int(Math.abs(mousePos.y - dragStartPos.y));
-						if (FlxG.mouse.justReleased) isSelecting = false;
+						if (pointerJustReleased) isSelecting = false;
 					} else {
 						if (FlxG.keys.pressed.SHIFT) {
 							for (group in [notesGroup, leftEventsGroup, rightEventsGroup]) {
@@ -906,10 +950,10 @@ class Charter extends UIState {
 				}
 			case INVALID_DRAG:
 				// do nothing, locked
-				if (!FlxG.mouse.pressed)
+				if (!pointerPressed)
 					gridActionType = NONE;
 			case NOTE_DRAG:
-				selectionDragging = FlxG.mouse.pressed;
+				selectionDragging = pointerPressed;
 				if (selectionDragging) {
 					gridBackdrops.draggingObj = null;
 					selection.loop(function (n:CharterNote) {
@@ -941,7 +985,6 @@ class Charter extends UIState {
 
 							var boundedChange:FlxPoint = changePoint.clone();
 
-							// Some maths, so cool bro -lunar (i don't know why i quote my self here)
 							if (s.step + changePoint.x < 0) boundedChange.x += Math.abs(s.step + changePoint.x);
 							if (s.step + changePoint.x > __endStep-1) boundedChange.x -= (s.step + changePoint.x) - (__endStep-1);
 
@@ -983,16 +1026,15 @@ class Charter extends UIState {
 					currentCursor = ARROW;
 				}
 			case NONE:
-				if (FlxG.mouse.justPressed)
-					FlxG.mouse.getWorldPosition(charterCamera, dragStartPos);
-				else if (FlxG.mouse.justPressedRight) {
+				if (pointerJustPressed)
+					controls.mobileC ? ScreenUtil.touch?.instance?.getWorldPosition(charterCamera, dragStartPos) : FlxG.mouse.getWorldPosition(charterCamera, dragStartPos);
+				else if (pointerJustPressedRight) {
 					closeCurrentContextMenu();
 					gridActionType = DELETE_SELECTION;
 				}
 
 				if (gridBackdropDummy.hovered) {
-					// AUTO DETECT
-					if (FlxG.mouse.justPressed) isSelecting = true;
+					if (pointerJustPressed) isSelecting = true;
 					if (isSelecting && (Math.abs(mousePos.x - dragStartPos.x) > 20 || Math.abs(mousePos.y - dragStartPos.y) > 20)) {
 						gridActionType = BOX_SELECTION;
 					}
@@ -1000,7 +1042,7 @@ class Charter extends UIState {
 					var id = Math.floor(mousePos.x / 40);
 					var mouseOnGrid = id >= 0 && id < strumLines.totalKeyCount && mousePos.y >= 0;
 
-					if (FlxG.mouse.justReleased) {
+					if (pointerJustReleased) {
 						for (n in selection) n.selected = false;
 						selection = [];
 
@@ -1019,7 +1061,7 @@ class Charter extends UIState {
 						isSelecting = false;
 					}
 				} else if (gridBackdropDummy.hoveredByChild) {
-					if (FlxG.mouse.pressed) {
+					if (pointerPressed) {
 						var noteHovered:Bool = false;
 						for(n in selection) if (n.hovered) {noteHovered = true; break;}
 
@@ -1062,7 +1104,7 @@ class Charter extends UIState {
 					}
 				}
 			case SUSTAIN_DRAG:
-				selectionDragging = FlxG.mouse.pressed;
+				selectionDragging = pointerPressed;
 				if (selectionDragging) {
 					currentCursor = CLICK;
 					selection.loop(function (n:CharterNote) {
@@ -1103,14 +1145,14 @@ class Charter extends UIState {
 					}
 				});
 
-				if (FlxG.mouse.justReleasedRight) {
+				if (pointerJustReleasedRight) {
 					if (deletedNotes.length > 0) {
 						undos.addToUndo(CDeleteSelection(deletedNotes.copy()));
 					}
 					else if (noteDeleteAnims.garbageIcon.alpha <= .5) {
-						var mousePos = FlxG.mouse.getScreenPosition(uiCamera);
+						var contextMousePos = controls.mobileC ? ScreenUtil.touch?.instance?.getScreenPosition(uiCamera) : FlxG.mouse.getScreenPosition(uiCamera);
 						closeCurrentContextMenu();
-						openContextMenu(topMenu[1].childs, null, mousePos.x, mousePos.y);
+						openContextMenu(topMenu[1].childs, null, contextMousePos.x, contextMousePos.y);
 					}
 					gridActionType = NONE; deletedNotes = [];
 				}
@@ -1358,10 +1400,38 @@ class Charter extends UIState {
 	}
 	#end
 
+	public function handleMobileInputs() {
+		// DPadMode
+		if (mobilePadPressed("LEFT")) sideScroll -= 20;
+		if (mobilePadPressed("RIGHT")) sideScroll += 20;
+		if (mobilePadPressed("UP")) Conductor.songPosition -= Conductor.stepCrochet;
+		if (mobilePadPressed("DOWN")) Conductor.songPosition += Conductor.stepCrochet;
+		if (mobilePadJustPressed("UP2")) _note_subtractsustain(null);
+		if (mobilePadJustPressed("DOWN2")) _note_addsustain(null);
+
+		// ActionMode
+		if (mobilePadJustPressed("A")) _chart_playtest(null);
+		if (mobilePadJustPressed("B")) _playback_play(null);
+		if (mobilePadJustPressed("C")) _edit_copy(null);
+		if (mobilePadJustPressed("X")) _edit_cut(null);
+		if (mobilePadJustPressed("Y")) _edit_redo(null);
+		if (mobilePadJustPressed("Z")) _edit_undo(null);
+		if (mobilePadJustPressed("V")) _edit_paste(null);
+		if (mobilePadJustPressed("O")) _opponent_camera_add(null);
+		if (mobilePadJustPressed("P")) _player_camera_add(null);
+		if (mobilePadJustPressed("D")) _edit_delete(null);
+
+		// Unused Buttons
+		if (mobilePadJustPressed("PLUS")) _view_zoomin(null);
+		if (mobilePadJustPressed("MINUS")) _view_zoomout(null);
+	}
+
 	var __crochet:Float;
 	var __firstFrame:Bool = true;
 	var __timer:Float = 0;
 	public override function update(elapsed:Float) {
+		if (controls.mobileC) handleMobileInputs();
+
 		if (Options.charterRainbowWaveforms) {
 			__timer += elapsed/8;
 			for (shader in waveformHandler.waveShaders)

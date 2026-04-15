@@ -32,6 +32,11 @@ class OptionsMenu extends TreeMenu {
 			desc: 'optionsTree.appearance-desc',
 			state: AppearanceOptions
 		},
+		{
+			name: 'optionsTree.mobile-name',
+			desc: 'optionsTree.mobile-desc',
+			state: MobileOptions
+		},
 		#if TRANSLATIONS_SUPPORT
 		{
 			name: 'optionsTree.language-name',
@@ -103,6 +108,9 @@ class OptionsMenu extends TreeMenu {
 				if (access != null) for (o in parseOptionsFromXML(first, access)) first.add(o);
 			}
 		}
+
+		addMobilePad("UP_DOWN", "A_B");
+		addMobilePadCamera();
 	}
 
 	function checkDebugOption() {

@@ -8,7 +8,7 @@ class GameplayOptions extends TreeMenuScreen {
 	var offsetSetting:NumOption;
 
 	public function new() {
-		super('optionsTree.gameplay-name', 'optionsTree.gameplay-desc', 'GameplayOptions.');
+		super('optionsTree.gameplay-name', 'optionsTree.gameplay-desc', 'GameplayOptions.', ['LEFT_FULL', 'A_B']);
 
 		add(new Checkbox(getNameID('downscroll'), getDescID('downscroll'), 'downscroll'));
 		add(new Checkbox(getNameID('ghostTapping'), getDescID('ghostTapping'), 'ghostTapping'));
@@ -65,7 +65,7 @@ class GameplayOptions extends TreeMenuScreen {
 
 class AdvancedGameplayOptions extends TreeMenuScreen {
 	public function new() {
-		super('optionsMenu.advanced', 'optionsTree.gameplay.advanced-desc', 'GameplayOptions.Advanced.');
+		super('optionsMenu.advanced', 'optionsTree.gameplay.advanced-desc', 'GameplayOptions.Advanced.', ['UP_DOWN', 'A_B']);
 
 		// Remove locked whenever this PR from FunkinCrew is merged.
 		// https://github.com/FunkinCrew/lime/pull/57

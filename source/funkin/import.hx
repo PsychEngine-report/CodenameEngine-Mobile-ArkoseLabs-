@@ -30,6 +30,17 @@ import funkin.menus.ui.Alphabet;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
+/* Basic Mobile Stuffs */
+import mobile.*;
+import mobile.MobileConfig;
+import mobile.objects.FunkinHitbox;
+import mobile.objects.FunkinMobilePad;
+import mobile.MobileConfig.ButtonModes;
+
+#if mobile
+import mobile.backend.MobileUtil;
+#end
+
 using StringTools;
 using funkin.backend.utils.CoolUtil;
 #end
