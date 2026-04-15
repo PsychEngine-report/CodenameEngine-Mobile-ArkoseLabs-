@@ -11,7 +11,7 @@
 		
 		<git name="lime" url="https://github.com/MaysLastPlays-Stuff/lime-h" if="android" />
 		
-		<git name="lime" url="https://github.com/th2l-devs/lime" if="ios" />
+		<git name="lime" url="https://github.com/ArkoseLabsOfficial/lime-cne" if="ios" />
 
 		<!-- Flixel -->
 		<git name="flixel" url="https://github.com/CodenameCrew/cne-flixel" ref="old" />
